@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>忍者战力计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #1a0a2e 0%, #16213e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .watermark-text {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.06);
+            font-size: 24px;
+            font-weight: bold;
+            white-space: nowrap;
+            transform: rotate(-30deg);
+            user-select: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 107, 107, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        .glow-1 {
+            background: #ff6b6b;
+            top: -50px;
+            left: 10%;
+        }
+
+        .glow-2 {
+            background: #5f27cd;
+            top: 0;
+            right: 10%;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #feca57;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .icon {
+            font-size: 1.8rem;
+        }
+
+        .ninja-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .ninja-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .ninja-btn:hover {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .ninja-btn.active {
+            border-color: #feca57;
+            background: rgba(254, 202, 87, 0.15);
+            color: #feca57;
+            box-shadow: 0 0 20px rgba(254, 202, 87, 0.2);
+        }
+
+        .custom-bonus {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .custom-bonus label {
+            color: #aaa;
+            white-space: nowrap;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-item label {
+            color: #aaa;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-item label .tag {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .input-item input {
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-item input:focus {
+            outline: none;
+            border-color: #5f27cd;
+            box-shadow: 0 0 15px rgba(95, 39, 205, 0.3);
+        }
+
+        .input-item input::placeholder {
+            color: #555;
+        }
+
+        .subsection-title {
+            color: #ff9ff3;
+            font-size: 1.1rem;
+            margin: 20px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 159, 243, 0.2);
+        }
+
+        .result-section {
+            background: linear-gradient(135deg, rgba(95, 39, 205, 0.2), rgba(255, 107, 107, 0.1));
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid rgba(95, 39, 205, 0.3);
+        }
+
+        .result-title {
+            color: #feca57;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .result-item .label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .result-item .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .result-item.hp .value { color: #54a0ff; }
+        .result-item.atk .value { color: #ff6b6b; }
+        .result-item.def .value { color: #5f27cd; }
+
+        .total-result {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(254, 202, 87, 0.2), rgba(255, 107, 107, 0.2));
+            border-radius: 15px;
+            border: 2px solid rgba(254, 202, 87, 0.3);
+        }
+
+        .total-result .label {
+            color: #feca57;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .total-result .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #feca57, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #888;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: rgba(95, 39, 205, 0.3);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .formula-hint {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .formula-hint summary {
+            cursor: pointer;
+            color: #888;
+            user-select: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .total-result .value {
+                font-size: 2rem;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .section:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark" id="watermark"></div>
+    <div class="container">
+        <div class="header">
+            <div class="glow glow-1"></div>
+            <div class="glow glow-2"></div>
+            <h1>🔥 忍者战力计算器</h1>
+            <p>属性加成 · 收集加成 · 招募战力计算</p>
+        </div>
+
+        <!-- 板块一：属性加成与收集加成升战提升 -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="icon">⚔️</span>
+                属性加成与收集加成 - 升战提升计算
+            </h2>
+
+            <div class="ninja-select" id="ninjaSelect1">
+                <button class="ninja-btn active" data-bonus="0.203">五星S级 (20.3%)</button>
+                <button class="ninja-btn" data-bonus="0.162">四星S/A级 (16.2%)</button>
+                <button class="ninja-btn" data-bonus="0.130">三星A级 (13.0%)</button>
+                <button class="ninja-btn" data-bonus="0.122">三星S级 (12.2%)</button>
+            </div>
+
+            <div class="custom-bonus">
+                <label>自定义属性加成：</label>
+                <input type="number" id="customBonus1" placeholder="输入百分比，如 20.3" style="width: 150px; padding: 8px 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; border-radius: 8px;">
+                <span style="color: #888;">%</span>
+            </div>
+
+            <h3 class="subsection-title">📊 收集加成（百分比）</h3>
+            <div class="input-group">
+                <div class="input-item">
+                    <label>生命收集加成 <span class="tag">%</span></label>
+                    <input type="number" id="collectHp1" value="81.9" placeholder="例如：81.9">
+                </div>
+                <div class="input-item">
+                    <label>攻击收集加成 <span class="tag">%</span></label>
+                    <input type="number" id="collectAtk1" value="106.2" placeholder="例如：106.2">
+                </div>
+                <div class="input-item">
+                    <label>防御收集加成 <span class="tag">%</span></label>
+                    <input type="number" id="collectDef1" value="58.1" placeholder="例如：58.1">
+                </div>
+            </div>
+
+            <h3 class="subsection-title">📈 面板数值</h3>
+            <div class="input-group">
+                <div class="input-item">
+                    <label>生命面板</label>
+                    <input type="number" id="panelHp1" value="127" placeholder="生命面板数值">
+                </div>
+                <div class="input-item">
+                    <label>攻击面板</label>
+                    <input type="number" id="panelAtk1" value="36" placeholder="攻击面板数值">
+                </div>
+                <div class="input-item">
+                    <label>防御面板</label>
+                    <input type="number" id="panelDef1" value="11" placeholder="防御面板数值">
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div class="result-title">✨ 计算结果</div>
+                <div class="result-grid">
+                    <div class="result-item hp">
+                        <div class="label">生命战力</div>
+                        <div class="value" id="resultHp1">0</div>
+                    </div>
+                    <div class="result-item atk">
+                        <div class="label">攻击战力</div>
+                        <div class="value" id="resultAtk1">0</div>
+                    </div>
+                    <div class="result-item def">
+                        <div class="label">防战战力</div>
+                        <div class="value" id="resultDef1">0</div>
+                    </div>
+                </div>
+                <div class="total-result">
+                    <div class="label">总战力提升</div>
+                    <div class="value" id="resultTotal1">0</div>
+                </div>
+            </div>
+
+            <details class="formula-hint">
+                <summary>📐 查看计算公式</summary>
+                <p>转化系数：生命×1 | 攻击×3.5 | 防御×11.6</p>
+                <p>单属性战力 = (1 + 属性加成 + 属性加成×收集加成%) × 转化系数 × 面板数值</p>
+                <p>总战力 = 生命战力 + 攻击战力 + 防战战力</p>
+            </details>
+        </div>
+
+        <!-- 板块二：招募忍者战力计算 -->
+        <div class="section">
+            <h2 class="section-title">
+                <span class="icon">🎴</span>
+                招募忍者战力计算
+            </h2>
+
+            <div class="ninja-select" id="ninjaSelect2">
+                <button class="ninja-btn active" data-bonus="0.203">五星S级 (20.3%)</button>
+                <button class="ninja-btn" data-bonus="0.162">四星S/A级 (16.2%)</button>
+                <button class="ninja-btn" data-bonus="0.130">三星A级 (13.0%)</button>
+                <button class="ninja-btn" data-bonus="0.122">三星S级 (12.2%)</button>
+            </div>
+
+            <div class="custom-bonus">
+                <label>自定义属性加成：</label>
+                <input type="number" id="customBonus2" placeholder="输入百分比，如 20.3" style="width: 150px; padding: 8px 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; border-radius: 8px;">
+                <span style="color: #888;">%</span>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab-zangguan">藏管面板</button>
+                <button class="tab-btn" data-tab="tab-total">总面板</button>
+                <button class="tab-btn" data-tab="tab-collect">当前收集加成</button>
+            </div>
+
+            <div class="tab-content active" id="tab-zangguan">
+                <h3 class="subsection-title">🏯 藏管面板数值</h3>
+                <div class="input-group">
+                    <div class="input-item">
+                        <label>生命藏管</label>
+                        <input type="number" id="zangguanHp" value="28000" placeholder="生命藏管数值">
+                    </div>
+                    <div class="input-item">
+                        <label>攻击藏管</label>
+                        <input type="number" id="zangguanAtk" value="213360" placeholder="攻击藏管数值">
+                    </div>
+                    <div class="input-item">
+                        <label>防御藏管</label>
+                        <input type="number" id="zangguanDef" value="7300" placeholder="防御藏管数值">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-total">
+                <h3 class="subsection-title">📊 总面板数值</h3>
+                <div class="input-group">
+                    <div class="input-item">
+                        <label>生命总面板</label>
+                        <input type="number" id="totalHp" value="28000" placeholder="生命总面板数值">
+                    </div>
+                    <div class="input-item">
+                        <label>攻击总面板</label>
+                        <input type="number" id="totalAtk" value="2216135" placeholder="攻击总面板数值">
+                    </div>
+                    <div class="input-item">
+                        <label>防御总面板</label>
+                        <input type="number" id="totalDef" value="250569" placeholder="防御总面板数值">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-collect">
+                <h3 class="subsection-title">⭐ 当前收集加成（百分比）</h3>
+                <div class="input-group">
+                    <div class="input-item">
+                        <label>生命收集加成 <span class="tag">%</span></label>
+                        <input type="number" id="collectHp2" value="0" placeholder="例如：0">
+                    </div>
+                    <div class="input-item">
+                        <label>攻击收集加成 <span class="tag">%</span></label>
+                        <input type="number" id="collectAtk2" value="4.4" placeholder="例如：4.4">
+                    </div>
+                    <div class="input-item">
+                        <label>防御收集加成 <span class="tag">%</span></label>
+                        <input type="number" id="collectDef2" value="0" placeholder="例如：0">
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">🎯 新忍者提供的收集加成（百分比）</h3>
+            <div class="input-group">
+                <div class="input-item">
+                    <label>生命收集加成 <span class="tag">%</span></label>
+                    <input type="number" id="newCollectHp" value="81.9" placeholder="新忍者生命加成%">
+                </div>
+                <div class="input-item">
+                    <label>攻击收集加成 <span class="tag">%</span></label>
+                    <input type="number" id="newCollectAtk" value="207.7" placeholder="新忍者攻击加成%">
+                </div>
+                <div class="input-item">
+                    <label>防御收集加成 <span class="tag">%</span></label>
+                    <input type="number" id="newCollectDef" value="58.1" placeholder="新忍者防御加成%">
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div class="result-title">✨ 招募后战力提升</div>
+                <div class="result-grid">
+                    <div class="result-item hp">
+                        <div class="label">生命提升</div>
+                        <div class="value" id="resultHp2">0</div>
+                    </div>
+                    <div class="result-item atk">
+                        <div class="label">攻击提升</div>
+                        <div class="value" id="resultAtk2">0</div>
+                    </div>
+                    <div class="result-item def">
+                        <div class="label">防御提升</div>
+                        <div class="value" id="resultDef2">0</div>
+                    </div>
+                </div>
+                <div class="total-result">
+                    <div class="label">总战力提升</div>
+                    <div class="value" id="resultTotal2">0</div>
+                </div>
+            </div>
+
+            <details class="formula-hint">
+                <summary>📐 查看计算公式</summary>
+                <p>1. 面板差值 = 总面板 - 藏管面板</p>
+                <p>2. 基础面板 = 面板差值 ÷ (1 + 属性加成 + 属性加成×当前收集加成%)</p>
+                <p>3. 属性增量 = 基础面板 × 新收集加成% × 属性加成</p>
+                <p>4. 战力提升 = 属性增量 × 转化系数（生命×1 | 攻击×3.5 | 防御×11.6）</p>
+            </details>
+        </div>
+
+        <footer>
+            💡 所有数据实时计算，无需提交 | 数据保存在本地浏览器
+        </footer>
+    </div>
+
+    <script>
+        // 生成水印
+        function createWatermark() {
+            const watermark = document.getElementById('watermark');
+            const text = '@Asa37.';
+            const cols = 8;
+            const rows = 15;
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const span = document.createElement('span');
+                    span.className = 'watermark-text';
+                    span.textContent = text;
+                    span.style.left = (j * 250 - 100) + 'px';
+                    span.style.top = (i * 180 - 50) + 'px';
+                    watermark.appendChild(span);
+                }
+            }
+        }
+        createWatermark();
+
+        // 转化系数
+        const COEFFICIENTS = {
+            hp: 1,
+            atk: 3.5,
+            def: 11.6
+        };
+
+        // 当前选中的属性加成
+        let attrBonus1 = 0.203;
+        let attrBonus2 = 0.203;
+
+        // 忍者等级选择
+        function setupNinjaSelect(selectId, bonusVar, customInputId) {
+            const buttons = document.querySelectorAll(`#${selectId} .ninja-btn`);
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const bonus = parseFloat(this.dataset.bonus);
+                    if (selectId === 'ninjaSelect1') {
+                        attrBonus1 = bonus;
+                    } else {
+                        attrBonus2 = bonus;
+                    }
+                    document.getElementById(customInputId).value = '';
+                    calculateAll();
+                });
+            });
+        }
+
+        setupNinjaSelect('ninjaSelect1', 'attrBonus1', 'customBonus1');
+        setupNinjaSelect('ninjaSelect2', 'attrBonus2', 'customBonus2');
+
+        // 自定义属性加成
+        document.getElementById('customBonus1').addEventListener('input', function() {
+            if (this.value) {
+                attrBonus1 = parseFloat(this.value) / 100;
+                document.querySelectorAll('#ninjaSelect1 .ninja-btn').forEach(b => b.classList.remove('active'));
+                calculateAll();
+            }
+        });
+
+        document.getElementById('customBonus2').addEventListener('input', function() {
+            if (this.value) {
+                attrBonus2 = parseFloat(this.value) / 100;
+                document.querySelectorAll('#ninjaSelect2 .ninja-btn').forEach(b => b.classList.remove('active'));
+                calculateAll();
+            }
+        });
+
+        // Tab切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+
+        // 获取输入值
+        function getVal(id) {
+            const val = parseFloat(document.getElementById(id).value);
+            return isNaN(val) ? 0 : val;
+        }
+
+        // 格式化数字
+        function formatNum(num) {
+            return Math.round(num).toLocaleString();
+        }
+
+        // 板块一计算
+        function calculateSection1() {
+            const collectHp = getVal('collectHp1') / 100;
+            const collectAtk = getVal('collectAtk1') / 100;
+            const collectDef = getVal('collectDef1') / 100;
+            const panelHp = getVal('panelHp1');
+            const panelAtk = getVal('panelAtk1');
+            const panelDef = getVal('panelDef1');
+
+            const bonus = attrBonus1;
+
+            const hpPower = (1 + bonus + bonus * collectHp) * COEFFICIENTS.hp * panelHp;
+            const atkPower = (1 + bonus + bonus * collectAtk) * COEFFICIENTS.atk * panelAtk;
+            const defPower = (1 + bonus + bonus * collectDef) * COEFFICIENTS.def * panelDef;
+            const total = hpPower + atkPower + defPower;
+
+            document.getElementById('resultHp1').textContent = formatNum(hpPower);
+            document.getElementById('resultAtk1').textContent = formatNum(atkPower);
+            document.getElementById('resultDef1').textContent = formatNum(defPower);
+            document.getElementById('resultTotal1').textContent = formatNum(total);
+        }
+
+        // 板块二计算
+        function calculateSection2() {
+            const zangguanHp = getVal('zangguanHp');
+            const zangguanAtk = getVal('zangguanAtk');
+            const zangguanDef = getVal('zangguanDef');
+            const totalHp = getVal('totalHp');
+            const totalAtk = getVal('totalAtk');
+            const totalDef = getVal('totalDef');
+            const collectHp = getVal('collectHp2') / 100;
+            const collectAtk = getVal('collectAtk2') / 100;
+            const collectDef = getVal('collectDef2') / 100;
+            const newCollectHp = getVal('newCollectHp') / 100;
+            const newCollectAtk = getVal('newCollectAtk') / 100;
+            const newCollectDef = getVal('newCollectDef') / 100;
+
+            const bonus = attrBonus2;
+
+            // 面板差值
+            const diffHp = totalHp - zangguanHp;
+            const diffAtk = totalAtk - zangguanAtk;
+            const diffDef = totalDef - zangguanDef;
+
+            // 反推基础面板
+            const baseHp = diffHp / (1 + bonus + bonus * collectHp);
+            const baseAtk = diffAtk / (1 + bonus + bonus * collectAtk);
+            const baseDef = diffDef / (1 + bonus + bonus * collectDef);
+
+            // 新收集加成带来的属性增量
+            const incHp = baseHp * newCollectHp * bonus;
+            const incAtk = baseAtk * newCollectAtk * bonus;
+            const incDef = baseDef * newCollectDef * bonus;
+
+            // 转化为战力
+            const powerHp = incHp * COEFFICIENTS.hp;
+            const powerAtk = incAtk * COEFFICIENTS.atk;
+            const powerDef = incDef * COEFFICIENTS.def;
+            const total = powerHp + powerAtk + powerDef;
+
+            document.getElementById('resultHp2').textContent = formatNum(powerHp);
+            document.getElementById('resultAtk2').textContent = formatNum(powerAtk);
+            document.getElementById('resultDef2').textContent = formatNum(powerDef);
+            document.getElementById('resultTotal2').textContent = formatNum(total);
+        }
+
+        function calculateAll() {
+            calculateSection1();
+            calculateSection2();
+        }
+
+        // 所有输入框实时计算
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculateAll);
+        });
+
+        // 初始化
+        calculateAll();
+    </script>
+</body>
+</html>
